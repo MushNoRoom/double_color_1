@@ -1,0 +1,3 @@
+A lottery logging app for keeping tracks of gaps of numbers.
+Qt used as front-end GUI framework. MySQL used as back-end database.
+MVC design pattern is used.

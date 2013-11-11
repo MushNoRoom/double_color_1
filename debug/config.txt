@@ -1,0 +1,4 @@
+host_name = localhost
+user = root
+password = 35941876
+database = dcl
