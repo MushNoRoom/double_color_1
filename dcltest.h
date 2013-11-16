@@ -3,20 +3,20 @@
 
 #include <QSqlDatabase>
 
-class MyModel;
+class LotteryTableModel;
 
 
 class DclTest
 {
 
 public:
-    static MyModel* m_testModel;
+    static LotteryTableModel* m_testModel;
 
 
 public:
     static void createDataBaseAndTables();
     static void startInsertTest();
-    static MyModel* getModel();
+    static LotteryTableModel* getModel();
     static void stopTesting();
 
 private:

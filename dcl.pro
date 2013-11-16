@@ -13,8 +13,6 @@ SOURCES += main.cpp \
     deleteresultwindow.cpp \
     lotterydockwidget.cpp \
     dataimporter.cpp \
-#    sqlite3.c \
-#    shell.c \
     dataimporterproxy.cpp \
     dcltest.cpp
 

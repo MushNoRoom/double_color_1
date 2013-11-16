@@ -5,7 +5,7 @@
 #include <QThread>
 
 class DataImporter;
-class MyModel;
+class LotteryTableModel;
 /*!
  * \brief The DataImporterProxy class is a convenient class for making DataImporter work in multi-threaded environment
  */
@@ -18,11 +18,11 @@ public:
      * \param di the DataImporter object pointer to the DataImporter
      * \param model the model accepting the data importing
      */
-    explicit DataImporterProxy(DataImporter* di, MyModel* model,
+    explicit DataImporterProxy(DataImporter* di, LotteryTableModel* model,
                                QObject *parent = 0);
     
 signals:
-    void startImport(MyModel* model);
+    void startImport(LotteryTableModel* model);
     //! emitted when the proxy has done its job
     void proxyDoneWork();
 
@@ -40,7 +40,7 @@ private slots:
 
 private:
     DataImporter* m_di;
-    MyModel* m_model;
+    LotteryTableModel* m_model;
     
 };
 

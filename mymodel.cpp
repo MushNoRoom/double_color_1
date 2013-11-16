@@ -94,7 +94,7 @@ void insertionSort(QList<int>& gap_list) {
 }
 
 
-MyModel::MyModel(QObject *parent, QSqlDatabase db)
+LotteryTableModel::LotteryTableModel(QObject *parent, QSqlDatabase db)
     :QSqlTableModel(parent, db),
       m_selected_blue_ball(0),
       m_red_blue_separated(true)
@@ -103,14 +103,14 @@ MyModel::MyModel(QObject *parent, QSqlDatabase db)
 }
 
 
-MyModel::~MyModel()
+LotteryTableModel::~LotteryTableModel()
 {
     qDebug() << "My model closed.";
 }
 
 
 //-----------------------------------------------------------------
-QVariant MyModel::data(const QModelIndex &index, int role) const
+QVariant LotteryTableModel::data(const QModelIndex &index, int role) const
 {
     int column = index.column();
     int row = index.row();
@@ -169,7 +169,7 @@ QVariant MyModel::data(const QModelIndex &index, int role) const
     return QSqlTableModel::data(index, role);
 }
 
-QVariant MyModel::headerData(int section, Qt::Orientation orientation, int role) const
+QVariant LotteryTableModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
     if (orientation == Qt::Horizontal && role == Qt::DisplayRole)
     {
@@ -211,7 +211,7 @@ QVariant MyModel::headerData(int section, Qt::Orientation orientation, int role)
         return QSqlTableModel::headerData(section, orientation, role);
 }
 
-Qt::ItemFlags MyModel::flags(const QModelIndex &index) const
+Qt::ItemFlags LotteryTableModel::flags(const QModelIndex &index) const
 {
     int col = index.column();
     if (col >= 0 && col <= 16)
@@ -222,7 +222,7 @@ Qt::ItemFlags MyModel::flags(const QModelIndex &index) const
     return Qt::ItemIsSelectable |  Qt::ItemIsEditable | Qt::ItemIsEnabled ;
 }
 
-int MyModel::rowCount(const QModelIndex &parent)
+int LotteryTableModel::rowCount(const QModelIndex &parent)
 {
     // fetch from more data from the buffer
     while (this->canFetchMore(parent))
@@ -230,7 +230,7 @@ int MyModel::rowCount(const QModelIndex &parent)
     return QSqlTableModel::rowCount();
 }
 
-void MyModel::acceptNewResultData(const int serial, const QDate& resultDate, const QVector<quint32> &redBalls
+void LotteryTableModel::acceptNewResultData(const int serial, const QDate& resultDate, const QVector<quint32> &redBalls
                                   , const QVector<quint32> &blueBall)
 {
     QSqlDatabase db = QSqlTableModel::database();
@@ -251,12 +251,38 @@ void MyModel::acceptNewResultData(const int serial, const QDate& resultDate, con
 
     if (serial / 1000000 > 10 || serial / 1000000 < 1)
     {
+
         QMessageBox wrong_serial_box;
         wrong_serial_box.setText(QString::fromUtf8("期号输入错误"));
         wrong_serial_box.exec();
         return;
     }
+    QString month_str = QString::number(resultDate.month());
+//    if (resultDate.month() < 10)
+//        month_str.prepend("0");
 
+    QString day_str = QString::number(resultDate.day());
+//    if (resultDate.day() < 10)
+//        day_str.prepend("0");
+
+    QString date = QString::number(resultDate.year()) + "/"
+            + month_str + "/" + day_str;
+
+    QString date_check_str = "Select Date from result3 where Date = '" + date + "'";
+
+    QSqlQuery date_check_query(date_check_str, db);
+    if (date_check_query.first())
+    {
+        QMessageBox date_serial_box;
+        date_serial_box.setText(QString::fromUtf8("日期输入重复"));
+        date_serial_box.exec();
+        return;
+    }
+
+    // update the year result amount map
+    const year_t cur_result_year = month_str.toInt();
+    (m_year_amount_map.find(cur_result_year) == m_year_amount_map.end()) ? m_year_amount_map.insert(cur_result_year, 1) :
+                                                                           m_year_amount_map[cur_result_year]++;
     int current_num_of_rows(0);
     int new_id = current_num_of_rows;
     if (this->database().driver()->hasFeature(QSqlDriver::QuerySize))
@@ -277,33 +303,13 @@ void MyModel::acceptNewResultData(const int serial, const QDate& resultDate, con
     if (current_num_of_rows == 0)
         new_id = 1;
 
-    my_query.prepare("INSERT INTO result3 (Serial, Date, Red1, Red2, Red3, Red4, Red5, Red6, Blue1, Id) VALUES (:Serial, :Date, :Red1, :Red2, :Red3, :Red4, :Red5, :Red6, :Blue1, :Id)");
+    my_query.prepare(
+                "INSERT INTO result3 (Serial, Date, Red1, Red2, Red3, Red4, Red5, Red6, Blue1) VALUES (:Serial, :Date, :Red1, :Red2, :Red3, :Red4, :Red5, :Red6, :Blue1)");
     // binds Id
-    my_query.bindValue(":Id", new_id);
+    //my_query.bindValue(":Id", new_id);
     // binds Serial
     my_query.bindValue(":Serial", serial);
 
-    QString month_str = QString::number(resultDate.month());
-//    if (resultDate.month() < 10)
-//        month_str.prepend("0");
-
-    QString day_str = QString::number(resultDate.day());
-//    if (resultDate.day() < 10)
-//        day_str.prepend("0");
-
-    QString date = QString::number(resultDate.year()) + "/"
-            + month_str + "/" + day_str;
-
-    QString date_check_str = "Select Date from result3 where Date = '" + date + "'";
-    qDebug() << date_check_str;
-    QSqlQuery date_check_query(date_check_str, db);
-    if (date_check_query.first())
-    {
-        QMessageBox date_serial_box;
-        date_serial_box.setText(QString::fromUtf8("日期输入重复"));
-        date_serial_box.exec();
-        return;
-    }
 
     my_query.bindValue(":Date", date);
 
@@ -332,14 +338,14 @@ void MyModel::acceptNewResultData(const int serial, const QDate& resultDate, con
     }
 
     select();
-    // insert the serial into tables for all blue balls
+    // create entry in the gap table with new result's serial number
     this->insertSerialIntoGapTable(serial, 0, false);
     this->insertSerialIntoGapTable(serial, 0, true);
-    // insert the serial into the table for specific blue balls
+    // for specific blue ball table
     this->insertSerialIntoGapTable(serial, blueBall.at(0), false);
     this->insertSerialIntoGapTable(serial, blueBall.at(0), true);
 
-    // retrieve the last query of the SELECT
+    // retrieve the last record of the SELECT which is the record we just insert
     QString last_record_query_str = "SELECT * from result3 where Serial = " + QString::number(serial);
     QSqlQuery last_record_query(last_record_query_str, database());   
     last_record_query.last();
@@ -355,7 +361,7 @@ void MyModel::acceptNewResultData(const int serial, const QDate& resultDate, con
 }
 
 
-void MyModel::calculateGaps(int startingID)
+void LotteryTableModel::calculateGaps(int startingID)
 {
     int num_of_rows;
     if (this->database().driver()->hasFeature(QSqlDriver::QuerySize))
@@ -381,7 +387,7 @@ void MyModel::calculateGaps(int startingID)
 
 }
 
-void MyModel::deleteResult(int serial)
+void LotteryTableModel::deleteResult(int serial)
 {
     QSqlQuery getBlueBallQuery(this->database());
     getBlueBallQuery.prepare("SELECT Blue1, Id from result3 WHERE Serial = :Serial");
@@ -403,7 +409,7 @@ void MyModel::deleteResult(int serial)
    // setRedBlueSeparated(current_separate);
 }
 
-void MyModel::deleteAllResults( )
+void LotteryTableModel::deleteAllResults( )
 {
     // delete from result3
     QSqlQuery delete_query1("delete from result3", this->database());
@@ -413,14 +419,14 @@ void MyModel::deleteAllResults( )
     this->select();
 }
 
-void MyModel::setBlueBallSelect(int num)
+void LotteryTableModel::setBlueBallSelect(int num)
 {
     m_selected_blue_ball = num;
     setTable(determineTableName(num, m_red_blue_separated));
     this->select();
 }
 
-void MyModel::setRedBlueSeparated(bool separated)
+void LotteryTableModel::setRedBlueSeparated(bool separated)
 {
     m_red_blue_separated = separated;
     setTable(determineTableName(m_selected_blue_ball, separated));
@@ -428,44 +434,46 @@ void MyModel::setRedBlueSeparated(bool separated)
     this->select();
 }
 
-const QMap<QString, int> MyModel::findGapsForRecord(const QSqlRecord &record, int blueBall, bool separated)
+const QMap<QString, int> LotteryTableModel::findGapsForRecord(const QSqlRecord &record, int blueBall, bool separated)
 {
-    int id_index = record.indexOf("Id");
     int record_serial = record.value("Serial").toInt();
-    int record_id = record.value(id_index).toInt();
     bool found_flag = false;
     QMap<QString, int> gap_map;
     QString field_name;
-    for(int i = 2; i <= 8; ++i)
+    for(int i = 1; i <= 7; ++i)
     {
         // numbers in the record.
-        int number2check = record.value(i).toInt();
+        QString ball_string = "Red" + QString::number(i);
+        if (i == 7)
+            ball_string = "Blue1";
+        int ball_index = record.indexOf(ball_string);
+        int number2check = record.value(ball_index).toInt();
         QSqlQuery comparand_query(this->database());
         QString comparand_query_str;
         if (blueBall == 0)// select all blue balls
         {
-            comparand_query_str = "SELECT Id, Red1, Red2, Red3, Red4, Red5, Red6, Blue1 from result3 where Id <= " + QString::number(record_id) + " ORDER BY Serial";
+            comparand_query_str = "SELECT Serial Red1, Red2, Red3, Red4, Red5, Red6, Blue1 from result3 where Serail <= " + QString::number(record_serial) + " ORDER BY Serial";
         }
         else // for a specific blue ball
         {
-            comparand_query_str = "SELECT Id, Red1, Red2, Red3, Red4, Red5, Red6, Blue1 from result3 where Id <= " + QString::number(record_id) + " AND Blue1 = " + QString::number(blueBall) + " ORDER BY Serial";
+            comparand_query_str = "SELECT Serial Red1, Red2, Red3, Red4, Red5, Red6, Blue1 from result3 where Serial <= " + QString::number(record_serial) + " AND Blue1 = " + QString::number(blueBall) + " ORDER BY Serial";
         }
         comparand_query.exec(comparand_query_str);
         comparand_query.last();
-        while(comparand_query.previous())
+        int count = 0;
+        while(comparand_query.previous()) // start from the previous record to the selected record
         {
-            int comparand_id = comparand_query.value(0).toInt();
             // when checking blue ball
-            if (i == 8 && separated)
+            if (i == 7 && separated)
             {
                 field_name = "Blue1";
-                // only compare with blue ball in the comparand query
+                                // only compare with blue ball in the comparand query
                 int comparand = comparand_query.value(7).toInt();
                 if (number2check == comparand)
                 {
                     // the number is found in the comparand record
                     found_flag = true;
-                    gap_map.insert(field_name + "Gap", record_id - comparand_id - 1);
+                    gap_map.insert(field_name + "Gap", count);
                     //break;  // jump out of the for loop
                 }
 
@@ -480,7 +488,7 @@ const QMap<QString, int> MyModel::findGapsForRecord(const QSqlRecord &record, in
                     // the check goes to the ball of Blue1
                     check_upper_limit = 7;
                 }
-                if (i == 8)
+                if (i == 7)
                 {
                     field_name = "Blue1";
                 }
@@ -491,8 +499,7 @@ const QMap<QString, int> MyModel::findGapsForRecord(const QSqlRecord &record, in
                     {
                         found_flag = true;
 
-                        gap_map.insert(field_name + "Gap"
-                                       ,record_id - comparand_id -1);
+                        gap_map.insert(field_name + "Gap", count);
 
                         break;  // jump out of the for loop
                     }
@@ -507,14 +514,12 @@ const QMap<QString, int> MyModel::findGapsForRecord(const QSqlRecord &record, in
             {
 
                 // comparand is the first record already
-                if (comparand_id == 1 || comparand_query.at() == 0)
+                if (comparand_query.at() == 0)
                 {
-//                    qDebug() << "Ball " << number2check <<
-//                                "has a gap of " << - 1;
                     gap_map.insert(field_name + "Gap", -1); // -1 stands for the number has not showd up yet
                 }
-//                record2compare = this->record(comparand_id - 2);// go to one record before current comparand
             }
+            count++; // increase the record counter to indicate one more record has been scan
         }
     }
 
@@ -536,7 +541,7 @@ const QMap<QString, int> MyModel::findGapsForRecord(const QSqlRecord &record, in
 }
 
 
-QString MyModel::selectStatement() const
+QString LotteryTableModel::selectStatement() const
 {
     // 0 means display all
     if (m_selected_blue_ball == 0)
@@ -559,7 +564,7 @@ QString MyModel::selectStatement() const
     }
 }
 
-QString MyModel::prediction(int row) const
+QString LotteryTableModel::prediction(int row) const
 {
     QSqlRecord record = this->record(row);
     int red1gap_index = record.indexOf("Red1Gap");
@@ -580,7 +585,7 @@ QString MyModel::prediction(int row) const
 }
 
 
-void MyModel::deleteResultPrivate(int Id)
+void LotteryTableModel::deleteResultPrivate(int Id)
 {
     int deleted_row = Id - 1; // The record's Id that is deleted
 
@@ -618,7 +623,7 @@ void MyModel::deleteResultPrivate(int Id)
     }
 }
 
-void MyModel::recalculateID()
+void LotteryTableModel::recalculateID()
 {
     int id = 1;
     QSqlQuery select_query("SELECT Serial, Id from result3 ORDER by Serial", this->database());
@@ -636,7 +641,7 @@ void MyModel::recalculateID()
 
 }
 
-void MyModel::insertSerialIntoGapTable(int serial, int blueBall, bool separated)
+void LotteryTableModel::insertSerialIntoGapTable(int serial, int blueBall, bool separated)
 {
     QString table_name = determineTableName(blueBall, separated);
     QSqlQuery insert_query(this->database());

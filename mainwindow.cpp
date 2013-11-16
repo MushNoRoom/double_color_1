@@ -98,7 +98,7 @@ inline void reOrderHeader(QHeaderView* header)
     }
 }
 
-inline void updateModelView(MyModel& model, QTableView& view)
+inline void updateModelView(LotteryTableModel& model, QTableView& view)
 {
     model.select();
     reOrderHeader(view.horizontalHeader());
@@ -189,7 +189,7 @@ MainWindow::MainWindow(QWidget *parent)
         exit(-1);
     }
 
-    m_sqlModel = new MyModel(0, db);
+    m_sqlModel = new LotteryTableModel(0, db);
 
     connect(myDockWidget, SIGNAL(blueBallSelectChanged(int)),
             m_sqlModel, SLOT(setBlueBallSelect(int)));

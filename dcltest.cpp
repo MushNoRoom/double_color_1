@@ -7,11 +7,11 @@
 #include <QDebug>
 #include <QString>
 
-class MyModel;
+class LotteryTableModel;
 
 QSqlDatabase db;
 
-MyModel* DclTest::m_testModel = 0;
+LotteryTableModel* DclTest::m_testModel = 0;
 
 
 DclTest::DclTest(){
@@ -21,7 +21,7 @@ DclTest::DclTest(){
 void DclTest::createDataBaseAndTables()
 {
 
-    MyModel* model = getModel();
+    LotteryTableModel* model = getModel();
     QString createStr("CREATE TABLE result3("
             "Serial int,"
             "Date DATE,"
@@ -80,7 +80,7 @@ void DclTest::createDataBaseAndTables()
 
 }
 
-MyModel* DclTest::getModel()
+LotteryTableModel* DclTest::getModel()
 {
     if (m_testModel == 0)
     {
@@ -114,21 +114,21 @@ MyModel* DclTest::getModel()
         db.setDatabaseName(config_hash.value("database"));
         db.setPassword(config_hash.value("password"));
         db.open();
-        m_testModel = new MyModel(0, db);
+        m_testModel = new LotteryTableModel(0, db);
     }
     return m_testModel;
 }
 
 void DclTest::startInsertTest()
 {
-    MyModel* model = getModel();
+    LotteryTableModel* model = getModel();
 
 }
 
 
 void DclTest::stopTesting()
 {
-    MyModel* model = getModel();
+    LotteryTableModel* model = getModel();
     QSqlQuery query2("delete from gap_all_sp", model->database());
     QSqlQuery query3("delete from gap_all_nsp", model->database());
 

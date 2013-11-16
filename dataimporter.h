@@ -5,7 +5,7 @@
 #include <QString>
 #include <QFile>
 
-class MyModel;
+class LotteryTableModel;
 class QProgressBar;
 
 class DataImporter : public QObject
@@ -24,7 +24,7 @@ public:
          * \brief startImporting start import data into model's data base
          * \param model the pointer to the model object
          */
-        void startImporting(MyModel* model);
+        void startImporting(LotteryTableModel* model);
 
     signals:
         void doneImporting();

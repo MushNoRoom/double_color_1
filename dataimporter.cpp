@@ -12,7 +12,7 @@
 
 char data_buffer[64];
 
-void addDataFromLocalFile(QString fileName, MyModel* model)
+void addDataFromLocalFile(QString fileName, LotteryTableModel* model)
 {
     QSqlQuery delete_query("DELETE from result3", model->database());
 
@@ -26,6 +26,7 @@ void addDataFromLocalFile(QString fileName, MyModel* model)
 
     QSqlQuery query2("delete from gap_all_sp", model->database());
     QSqlQuery query3("delete from gap_all_nsp", model->database());
+
 
     QSqlQuery query4("INSERT INTO gap_all_sp (Serial) SELECT Serial from result3", model->database());
     QSqlQuery query5("INSERT INTO gap_all_nsp (Serial) SELECT Serial from result3", model->database());
@@ -82,55 +83,8 @@ DataImporter::~DataImporter()
 }
 
 
-void DataImporter::startImporting(MyModel *model)
+void DataImporter::startImporting(LotteryTableModel *model)
 {
-//    qDebug() << "Start importing" << QThread::currentThread();
-//    // go to the beginning of the file
-//    m_file_handler.seek(0);
-//    // read one line of record
-//    qint64  lineLength = m_file_handler.readLine(data_buffer,
-//                                        64);
-//    qint64 num_of_lines = m_file_handler.size() / lineLength;
-
-//    qDebug() << num_of_lines;
-//    if (import_progress != 0)
-//        delete import_progress;
-
-
-//    connect(this, SIGNAL(doneImporting()), import_progress, SLOT(close()));
-//    import_progress->show();
-//    qDebug() << import_progress->maximum();
-//    while (lineLength != -1)
-//    {
-//        QString line_data(data_buffer);
-//        // split the sections
-//        QStringList list = line_data.split(" ");
-//        qDebug() << list.size();
-////        qDebug() << list;
-//        QStringList date_list = list[1].split("-");
-
-////        QStringList list1 = list[0].split("	");
-////        qDebug() << list1;
-////        for (int i = 0; i < list.size(); i++)
-////        {
-////            qDebug() << list.at(i);
-////        }
-//        qDebug() << date_list;
-//        QDate date(date_list.at(0).toInt(), date_list.at(1).toInt(),
-//                   date_list.at(2).toInt());
-//        QVector<quint32> red_balls;
-//        for (int i = 2; i < 8; ++i)
-//        {
-//            red_balls.append(static_cast<quint32>(list.at(i).toInt()));
-//        }
-//        QVector<quint32> blue_ball(1, static_cast<quint32>(list.at(8).toInt()));
-
-////        qDebug() << QString::fromUtf8("正在输入") << list.at(0) << QString::fromUtf8("期");
-//        model->acceptNewResultData(date, red_balls, blue_ball);
-//        addProgress();
-//        lineLength = m_file_handler.readLine(data_buffer, 64);
-//    }
-
     addDataFromLocalFile(m_file_handler.fileName(), model);
     emit doneImporting();
 

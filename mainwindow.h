@@ -51,7 +51,7 @@ class QTableView; //forward declaration
 QT_END_NAMESPACE
 
 class QThread;
-class MyModel;
+class LotteryTableModel;
 class DataImporter;
 class DataImporterProxy;
 class QProgressBar;
@@ -63,7 +63,7 @@ class MainWindow : public QMainWindow
 private:
     QTableView *tableView;
     QSqlDatabase db;
-    MyModel* m_sqlModel;
+    LotteryTableModel* m_sqlModel;
 
 private slots:
     void onNewActionClick();

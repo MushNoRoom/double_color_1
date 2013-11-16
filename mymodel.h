@@ -49,17 +49,24 @@
 #include <QMap>
 
 
+
 const int COLS= 3;
 const int ROWS= 2;
 
+typedef int year_t;
 
-
-class MyModel : public QSqlTableModel
+/*!
+ * \brief The DCLTableModel class is a class that represents the data of the lottery.
+ *
+ *  This is the model in the MVC architecture. Its backend is a MySQL database.
+ *  Inherit QSqlTableModel.
+ */
+class LotteryTableModel : public QSqlTableModel
 {
     Q_OBJECT
 public:
-    MyModel(QObject *parent, QSqlDatabase db = QSqlDatabase());
-    ~MyModel();
+    LotteryTableModel(QObject *parent, QSqlDatabase db = QSqlDatabase());
+    ~LotteryTableModel();
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
     QVariant headerData ( int section, Qt::Orientation orientation, int role = Qt::DisplayRole ) const;
     Qt::ItemFlags flags(const QModelIndex & index) const ;
@@ -146,6 +153,7 @@ private:
     QSqlDatabase m_db;
     int m_selected_blue_ball; // the blue ball selected to view. 0 for all numbers
     bool m_red_blue_separated; // if the red and blue balls are treated separatly
+    QMap<year_t, int> m_year_amount_map; // map contains the amount of results in each year
 
 };
 //! [Quoting ModelView Tutorial]
