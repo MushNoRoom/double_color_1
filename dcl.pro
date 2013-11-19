@@ -1,6 +1,6 @@
 TARGET = double_color_lottery
 
-QT += sql
+QT += sql widgets testlib
 
 QMAKE_CXXFLAGS += -std=gnu++0x
 

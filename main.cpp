@@ -38,10 +38,11 @@
 **
 ****************************************************************************/
 
-#include <QtGui/QApplication>
+#include <QApplication>
 #include <QCoreApplication>
-//#include "mainwindow.h"
+#include "mainwindow.h"
 #include "dcltest.h"
+#include <QScopedPointer>
 
 
 int main(int argc, char *argv[])
@@ -49,8 +50,10 @@ int main(int argc, char *argv[])
     QApplication a(argc, argv);
     QCoreApplication::setOrganizationName("HJN");
     QCoreApplication::setApplicationName("DCL");
-//    MainWindow w;
-//    w.show();
-    DclTest::createDataBaseAndTables();
+    MainWindow w;
+    w.show();
+    //QScopedPointer<DclTest> my_test(DclTest::getTestInstance());
+    //my_test->startTest();
     return a.exec();
+//    return 1;
 }

@@ -1,5 +1,6 @@
 #include "dcltest.h"
 #include "mymodel.h"
+#include "dataimporter.h"
 #include <QSqlQuery>
 #include <QFile>
 #include <QCoreApplication>
@@ -9,26 +10,55 @@
 
 class LotteryTableModel;
 
-QSqlDatabase db;
 
-LotteryTableModel* DclTest::m_testModel = 0;
 
+DclTest* DclTest::test_instance = 0;
+
+DclTest* DclTest::getTestInstance()
+{
+    if (test_instance == 0)
+    {
+        test_instance = new DclTest;
+    }
+    return test_instance;
+}
 
 DclTest::DclTest(){
+    m_testModel = 0;
 
 }
 
-void DclTest::createDataBaseAndTables()
+DclTest::~DclTest(){
+    // test the LotteryTableModel object
+    if (m_testModel != 0)
+    {
+        qDebug() << "Deleting Database model";
+        m_testModel->database().close(); // close the database first
+        delete m_testModel;
+    }
+}
+
+void DclTest::startTest()
+{
+    qDebug() << "test starts";
+    testDeleteTables();
+    testCreateTables();
+    testImportFile();
+    qDebug() << "test ends";
+}
+
+
+void DclTest::testCreateTables()
 {
 
     LotteryTableModel* model = getModel();
+    model->database().open();
     QString createStr("CREATE TABLE result3("
-            "Serial int,"
+            "Serial int not null,"
             "Date DATE,"
             "Red1 tinyint, Red2 tinyint, Red3 tinyint, Red4 tinyint, Red5 tinyint, Red6 tinyint,"
             "Blue1 tinyint,"
-            "Id int NOT NULL AUTO_INCREMENT,"
-            "PRIMARY KEY(Id))");
+            "PRIMARY KEY(Serial))");
     qDebug() << createStr;
     QSqlQuery dropTableQuery;
     dropTableQuery.prepare("DROP TABLE result3");
@@ -42,16 +72,10 @@ void DclTest::createDataBaseAndTables()
     QString cstr1("("
                   "Serial int,"
                   "Red1Gap int, Red2Gap int, Red3Gap int, Red4Gap int, Red5Gap int, Red6Gap int,"
-                  "Blue1 int,"
+                  "Blue1Gap int,"
                   "Prediction TEXT,"
                   "Calculation TEXT)");
     qDebug() << cstr1;
-//    createGapTables.prepare("CREATE TABLE :tableName("
-//                    "Serial int,"
-//                    "Red1Gap int, Red2Gap int, Red3Gap int, Red4Gap int, Red5Gap int, Red6Gap int,"
-//                    "Blue1 int,"
-//                    "Prediction TEXT,"
-//                    "Calculation TEXT)");
 
 
     for (int blueBall = 0; blueBall <= 16; ++blueBall)
@@ -88,7 +112,8 @@ LotteryTableModel* DclTest::getModel()
 
         QHash<QString, QString> config_hash;
         QFile config_file(QCoreApplication::applicationDirPath() + "/config.txt");
-        config_file.open(QIODevice::ReadOnly);
+        qDebug() << (config_file.open(QIODevice::ReadOnly));
+
 
         memset(buffer, '\0', 64);
         int readLength = config_file.readLine(buffer, 64);
@@ -107,7 +132,7 @@ LotteryTableModel* DclTest::getModel()
             readLength = config_file.readLine(buffer, 64);
         }
         config_file.close();
-        db = QSqlDatabase::addDatabase("QMYSQL");
+        QSqlDatabase db = QSqlDatabase::addDatabase("QMYSQL");
         db.setHostName(config_hash.value("host_name"));
         db.setUserName(config_hash.value("user"));
         db.setPort(3306);
@@ -119,16 +144,12 @@ LotteryTableModel* DclTest::getModel()
     return m_testModel;
 }
 
-void DclTest::startInsertTest()
+
+
+void DclTest::testDeleteTables()
 {
     LotteryTableModel* model = getModel();
-
-}
-
-
-void DclTest::stopTesting()
-{
-    LotteryTableModel* model = getModel();
+    model->database().open();
     QSqlQuery query2("delete from gap_all_sp", model->database());
     QSqlQuery query3("delete from gap_all_nsp", model->database());
 
@@ -140,6 +161,12 @@ void DclTest::stopTesting()
         QSqlQuery gap_table_query1("DELETE FROM " + sp_table, model->database());
         QSqlQuery gap_table_query2("DELETE FROM " + nsp_table, model->database());
     }
-    db.close();
-    delete m_testModel;
+}
+
+
+void DclTest::testImportFile()
+{
+    DataImporter di(QCoreApplication::applicationDirPath() + "/dcl_file.txt");
+    di.startImporting(getModel());
+
 }

@@ -106,10 +106,9 @@ public slots:
      */
     void setRedBlueSeparated(bool separated);
     /*!
-     * \brief calculateGaps convenient function to calculate gaps for all the results in table
-     * \param startingID the ID of the entry from which the gap calculation starts. 1 fro start from beginning
+     * \brief calculateAllGaps calculate gaps for all the records in the database
      */
-    void calculateGaps(int startingID = 1);
+    void calculateAllGaps();
 
 
 public:

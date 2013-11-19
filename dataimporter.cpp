@@ -20,7 +20,9 @@ void addDataFromLocalFile(QString fileName, LotteryTableModel* model)
     QSqlQuery query(model->database());
     fileName.prepend("'");
     fileName.append("'");
-    query.prepare("LOAD DATA INFILE " + fileName + " replace INTO table result3 fields terminated by ' '" );
+    QString import_string = "LOAD DATA INFILE " + fileName + " replace INTO table result3 fields terminated by ' '";
+    qDebug() << import_string;
+    query.prepare(import_string);
     qDebug() << "Start importing on thread " <<  QThread::currentThread();
     qDebug() << query.exec();
 
@@ -50,7 +52,8 @@ void addDataFromLocalFile(QString fileName, LotteryTableModel* model)
 
     }
 
-    model->calculateGaps();
+    // calculate all the gaps after importing.
+    model->calculateAllGaps();
 
     model->select();
 }

@@ -117,7 +117,11 @@ MainWindow::MainWindow(QWidget *parent)
 
     qDebug() << "Starting new window " << QThread::currentThread();
     tableView = new QTableView(this);
+#if QT_VERSION >= 0x050000
+    tableView->horizontalHeader()->setSectionsMovable(true);
+#else
     tableView->horizontalHeader()->setMovable(true);
+#endif
     QString newMenuTitle = QString::fromUtf8("编辑");
 
     QMenu* new_menu = QMainWindow::menuBar()->addMenu(newMenuTitle);
@@ -183,7 +187,7 @@ MainWindow::MainWindow(QWidget *parent)
         QString error_str = QString::fromUtf8("开启数据库失败.请重启程序") + "\n" + db.lastError().text() +
                 "\n" + QString::number(db.lastError().type()) + "\n" + db.hostName() + db.password() + db.userName() + db.databaseName();
         if (!p_loader.isLoaded())
-            error_str += "\Plugin not loaded";
+            error_str += "\t Plugin not loaded";
         err_msg.showMessage(error_str);
         err_msg.exec();
         exit(-1);
