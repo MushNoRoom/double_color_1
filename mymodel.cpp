@@ -405,6 +405,21 @@ void LotteryTableModel::deleteResult(int serial)
         // delete the entry in all the gap tables involved.
         delete_query.exec("DELETE FROM " + x + " WHERE Serial = " + QString::number(serial));
     }
+    bool ok = select_query.exec("SELECT * from result3 WHERE Serial >= " + QString::number(serial));
+    bool have_record = select_query.first();
+
+    if (select_query.size() > 0 && ok && have_record)
+    {
+        do {
+            findGapsForRecord(select_query.record(), 0, true);
+            findGapsForRecord(select_query.record(), 0, false);
+            findGapsForRecord(select_query.record(), blue_ball, true);
+            findGapsForRecord(select_query.record(), blue_ball, false);
+        }
+        while(select_query.next());
+    }
+    this->select();
+
 
 
 }

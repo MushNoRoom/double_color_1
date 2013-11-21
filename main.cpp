@@ -50,10 +50,10 @@ int main(int argc, char *argv[])
     QApplication a(argc, argv);
     QCoreApplication::setOrganizationName("HJN");
     QCoreApplication::setApplicationName("DCL");
+    QScopedPointer<DclTest> my_test(DclTest::getTestInstance());
+    my_test->startTest();
     MainWindow w;
     w.show();
-    //QScopedPointer<DclTest> my_test(DclTest::getTestInstance());
-    //my_test->startTest();
     return a.exec();
 //    return 1;
 }
