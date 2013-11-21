@@ -14,7 +14,8 @@ SOURCES += main.cpp \
     lotterydockwidget.cpp \
     dataimporter.cpp \
     dataimporterproxy.cpp \
-    dcltest.cpp
+    dcltest.cpp \
+    databasewizard.cpp
 
 HEADERS += mainwindow.h \
            mymodel.h \
@@ -23,7 +24,8 @@ HEADERS += mainwindow.h \
     lotterydockwidget.h \
     dataimporter.h \
     dataimporterproxy.h \
-    dcltest.h
+    dcltest.h \
+    databasewizard.h
 
 # install
 target.path = .

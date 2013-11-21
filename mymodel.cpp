@@ -391,24 +391,22 @@ void LotteryTableModel::calculateAllGaps()
 
 void LotteryTableModel::deleteResult(int serial)
 {
-    QSqlQuery getBlueBallQuery(this->database());
-    getBlueBallQuery.prepare("SELECT Blue1, Id from result3 WHERE Serial = :Serial");
-    getBlueBallQuery.bindValue(":Serial", serial);
-    getBlueBallQuery.exec();
-    getBlueBallQuery.first();
-    // place the query to right entry
-    int buleBall = getBlueBallQuery.value(0).toInt();
+    // get the blueball number that the deleted record contains
+    QSqlQuery select_query("SELECT Blue1 from result3 WHERE Serial = " + QString::number(serial));
+    select_query.first();
+    int blue_ball = select_query.value(0).toInt();
+    QString gap_table1 = "gap_blue" + QString::number(blue_ball)+"_sp";
+    QString gap_table2 = "gap_blue" + QString::number(blue_ball)+"_nsp";
 
     QSqlQuery delete_query("DELETE from result3 WHERE Serial = " + QString::number(serial));
-    this->recalculateID();
-    //this->calculateAllGaps(getBlueBallQuery.value(1).toInt());
-   // deleteResultPrivate(Id);
-   // // for the sister table
-   // bool current_separate = m_red_blue_separated;
-   // setRedBlueSeparated(!isRedBlueSeparated());
-   // deleteResultPrivate(Id);
-   // // switch back to the current table
-   // setRedBlueSeparated(current_separate);
+    QVector<QString> gap_table_invovled({"gap_all_sp", "gap_all_nsp", gap_table1, gap_table2});
+    for (auto &x : gap_table_invovled)
+    {
+        // delete the entry in all the gap tables involved.
+        delete_query.exec("DELETE FROM " + x + " WHERE Serial = " + QString::number(serial));
+    }
+
+
 }
 
 void LotteryTableModel::deleteAllResults( )
