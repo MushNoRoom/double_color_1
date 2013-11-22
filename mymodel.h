@@ -47,6 +47,8 @@
 #include <QSqlDatabase>
 #include <QString>
 #include <QMap>
+#include <QDate>
+#include <QVector>
 
 
 
@@ -85,17 +87,13 @@ public slots:
      * \param redBalls vector of all the red ball numbers
      * \param blueBall vector of all the blue ball numbers (there is only one item in it)
      */
-    void acceptNewResultData(const int serial, const QDate& resultDate, const QVector<quint32>& redBalls,
-                             const QVector<quint32>& blueBall);
+    void acceptNewResultData(const int serial, const QDate resultDate, QVector<quint32> redBalls,
+                             QVector<quint32> blueBall);
     /*!
      * \brief detele a entry with the serial number \e serial
      * \param serial the serial number of the entry to be deleted.
      */
     void deleteResult(int serial);
-    /*!
-     * \brief deleteAllResults delete all the results in the database (the .db files)
-     */
-    void deleteAllResults();
     /*!
      * \brief setBlueBallSelect set the displayed blue ball to \e num
      * \param num the number of blue ball that user want to view
@@ -143,10 +141,15 @@ protected:
     virtual QString prediction(int row) const;
 
 private:
-    //! Private implementation of delete result
-    void deleteResultPrivate(int id);
-    void recalculateID();
     void insertSerialIntoGapTable(int serial, int blueBall, bool separated = true);
+    /*!
+     * \brief calculateGapsStartingAt calculate gap values for the record whose Serial is >= startSerial and Blue1 = blueBall
+     *
+     * This function should be call after the a new record is inserted or an existing record has been deleted
+     * \param startSerial the startSerial for records
+     * \param blueBall blue ball number involved
+     */
+    void calculateGapsStartingAt(int startSerial, int blueBall);
 
 private:
     QSqlDatabase m_db;

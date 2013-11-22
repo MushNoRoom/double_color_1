@@ -1,10 +1,14 @@
 #include "newresultwindow.h"
+#include "lotterymath.h"
+#include <string>
+#include <iostream>
 #include <QGridLayout>
 #include <QLabel>
 #include <QLineEdit>
 #include <QVector>
 #include <QPushButton>
 #include <QMessageBox>
+#include <QDebug>
 
 NewResultWindow::NewResultWindow(QWidget *parent) :
     QWidget(parent),
@@ -73,6 +77,7 @@ void NewResultWindow::onConfirmClick()
     {
         m_red_balls.append(quint32(m_red_edit_vec.at(i)->text().toUInt()));
     }
+    LotteryMath::insertionSort(m_red_balls.begin(), m_red_balls.end() - 1, true);
 
     int serial = m_serial_edit->text().toInt();
     if (serial == 0)

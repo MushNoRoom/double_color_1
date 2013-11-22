@@ -52,6 +52,7 @@ int main(int argc, char *argv[])
     QCoreApplication::setApplicationName("DCL");
     QScopedPointer<DclTest> my_test(DclTest::getTestInstance());
     my_test->startTest();
+    my_test.reset();
     MainWindow w;
     w.show();
     return a.exec();

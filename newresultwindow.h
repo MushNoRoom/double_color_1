@@ -34,7 +34,7 @@ public:
 
 
 signals:
-    void newResultConfirmed(const int, const QDate&, const QVector<quint32>&, const QVector<quint32>&);
+    void newResultConfirmed(const int, const QDate, QVector<quint32>, QVector<quint32>);
     
 public slots:
 

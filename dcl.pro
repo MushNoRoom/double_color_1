@@ -25,7 +25,8 @@ HEADERS += mainwindow.h \
     dataimporter.h \
     dataimporterproxy.h \
     dcltest.h \
-    databasewizard.h
+    databasewizard.h \
+    lotterymath.h
 
 # install
 target.path = .
